@@ -78,7 +78,9 @@ stage('Start Test Database') {
 stage('Attach Jenkins to Network') {
     steps {
         script {
-            sh "docker network connect crisiview-net $(hostname) || true"
+           sh '''
+    docker network connect crisiview-net \$(hostname)
+'''
         }
     }
 }
