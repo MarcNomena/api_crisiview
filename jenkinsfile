@@ -53,12 +53,24 @@ stage('Start Test Database') {
         script {
             sh '''
                 docker run -d --name test-db \
+                    -p 3306:3306 \
                     -e MYSQL_ROOT_PASSWORD=root \
                     -e MYSQL_DATABASE=incident_db \
                     mysql:8.0
             '''
-
-            sleep 15
+            
+            // Wait for MySQL to be ready
+            sh '''
+                echo "Waiting for MySQL to be ready..."
+                for i in {1..30}; do
+                    if docker exec test-db mysqladmin ping -h localhost -uroot -proot --silent; then
+                        echo "MySQL is ready!"
+                        break
+                    fi
+                    echo "Waiting for MySQL... ($i/30)"
+                    sleep 2
+                done
+            '''
         }
     }
 }
@@ -67,9 +79,9 @@ stage('Integration Tests') {
     steps {
         script {
             sh 'npm install'
-
+            
             sh '''
-                DB_HOST=test-db \
+                DB_HOST=localhost \
                 DB_PORT=3306 \
                 DB_USER=root \
                 DB_PASSWORD=root \
