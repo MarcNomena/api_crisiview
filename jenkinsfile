@@ -19,10 +19,7 @@ pipeline {
                     }
                     withSonarQubeEnv('sq1') {
                         sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                              -Dsonar.projectKey=api-crisiview \
-                              -Dsonar.sources=. \
-                              -Dsonar.exclusions=node_modules/**
+                            ${scannerHome}/bin/sonar-scanner
                         """
                     }                 
                 
