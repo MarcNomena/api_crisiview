@@ -48,6 +48,15 @@ pipeline {
             }
         }
 
+        stage('Create Network') {
+    steps {
+        sh '''
+            docker network create crisiview-net || true
+        '''
+    }
+}
+
+
 stage('Start Test Database') {
     steps {
         script {
@@ -55,6 +64,7 @@ stage('Start Test Database') {
                 docker run -d --name test-db \
                     -e MYSQL_ROOT_PASSWORD=root \
                     -e MYSQL_DATABASE=incident_db \
+                    --network crisiview-net \
                     mysql:8.0
 
                 docker start test-db
@@ -64,6 +74,15 @@ stage('Start Test Database') {
         }
     }
 }
+
+stage('Attach Jenkins to Network') {
+    steps {
+        script {
+            sh "docker network connect crisiview-net $(hostname) || true"
+        }
+    }
+}
+
 
 stage('Integration Tests') {
     steps {
