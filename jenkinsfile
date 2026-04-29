@@ -28,14 +28,16 @@ pipeline {
         
         stage('Build and Push Docker Image') {
             steps {
-              
-                    script {
-                        docker.withRegistry('', 'docker-credential') {
-                            def customImage = docker.build("pantherlord/formify-backend:latest")
-                            customImage.push()
-                        }
+                script {
+                    // Using withDockerContainer to run Docker commands
+                    withDockerContainer(args: '-v /var/run/docker.sock:/var/run/docker.sock', 
+                                        image: 'docker:latest') {
+                        sh '''
+                            docker build -t pantherlord/api-crisiview:latest .
+                            docker push pantherlord/api-crisiview:latest
+                        '''
                     }
-                
+                }
             }
         }
     }
