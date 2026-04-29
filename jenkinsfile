@@ -10,67 +10,14 @@ pipeline {
         nodejs 'Node25'
     }
 
-    stages {
-        stage('Clean Workspace') {
-            steps {
-                cleanWs()
-            }
+   stage('Test SSH to VM') {
+    steps {
+        sshagent(['vm-ssh']) {
+            sh '''
+                ssh -o StrictHostKeyChecking=no azureuser@20.215.234.93 "echo 'SSH connection OK'"
+            '''
         }
-        stage('Checkout Code') {
-            steps {
-                checkout scm
-                sh 'pwd'
-                sh 'ls -la'
-                sh 'git status'  
-
-            }
-        }
-        
-         stage('SonarQube Analysis') {
-            steps {
-                script {
-                    scannerHome = tool 'sonar-scanner'
-                }
-                withSonarQubeEnv('sq1') {
-                    sh """
-                        ${scannerHome}/bin/sonar-scanner
-                    """
-                }                 
-            }
-        } 
-
-
-        stage('Install Dependencies') {
-    steps {
-        sh 'npm install'
     }
 }
 
-stage('Start Application') {
-    steps {
-        sh 'npm start &'
-        sleep 5   // laisse l'app démarrer
-    }
-}
-
-stage('Unit Tests') {
-    steps {
-        sh 'npm test'
-    }
-}
-
-
-
-
-         stage('Build and Push Docker Image') {
-            steps {
-                script {
-                    docker.withRegistry('', 'docker-credential') {
-                        def customImage = docker.build("pantherlord/api-crisiview:latest")
-                        customImage.push()
-                    }
-                }
-            }
-        } 
-    }
 }
