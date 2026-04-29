@@ -6,6 +6,11 @@ pipeline {
     }
 
     stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()  // This clears old workspace files
+            }
+        }
         stage('Checkout Code') {
             steps {
                 checkout scm
