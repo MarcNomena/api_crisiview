@@ -5,47 +5,17 @@ pipeline {
         DOCKER_HOST = "tcp://dind:2375"
     }
 
-    tools {
-        nodejs 'Node25'
-    }
-
     stages {
-        stage('Clean Workspace') {
+        stage('Test Docker Access') {
             steps {
-                cleanWs()  // This clears old workspace files
+                sh 'docker version'
+                sh 'docker info'
             }
         }
-        stage('Checkout Code') {
-            steps {
-                checkout scm
-                sh 'pwd'  // Verify we're in git repo
-                sh 'ls -la'  // See what files are there
-                sh 'git status'  // Confirm git is initialized
 
-            }
-        }
-        
-        stage('SonarQube Analysis') {
+        stage('Build Image') {
             steps {
-                script {
-                    scannerHome = tool 'sonar-scanner'
-                }
-                withSonarQubeEnv('sq1') {
-                    sh """
-                        ${scannerHome}/bin/sonar-scanner
-                    """
-                }                 
-            }
-        }
-        
-        stage('Build and Push Docker Image') {
-            steps {
-                script {
-                    docker.withRegistry('', 'docker-credential') {
-                        def customImage = docker.build("pantherlord/api-crisiview:latest")
-                        customImage.push()
-                    }
-                }
+                sh 'docker build -t myimage .'
             }
         }
     }
