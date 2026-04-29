@@ -49,11 +49,11 @@ pipeline {
         }
 
         stage('Create Network') {
-    steps {
-        sh '''
-            docker network create crisiview-net || true
-        '''
-    }
+            steps {
+                sh '''
+                    docker network create crisiview-net || true
+                '''
+            }
 }
 
 
@@ -89,16 +89,23 @@ stage('Attach Jenkins to Network') {
 stage('Integration Tests') {
     steps {
         script {
-            sh 'npm install'
+sh '''
+docker run --rm \
+  --network crisiview-net \
+  -v $PWD:/app \
+  -w /app \
+  node:20 \
+  sh -c "
+    npm install &&
+    DB_HOST=test-db \
+    DB_PORT=3306 \
+    DB_USER=root \
+    DB_PASSWORD=root \
+    DB_NAME=incident_db \
+    npm test
+  "
+'''
 
-            sh '''
-                DB_HOST=test-db \
-                DB_PORT=3306 \
-                DB_USER=root \
-                DB_PASSWORD=root \
-                DB_NAME=incident_db \
-                npm test
-            '''
         }
     }
 }
