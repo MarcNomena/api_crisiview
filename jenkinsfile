@@ -48,7 +48,6 @@ pipeline {
             }
         }
 
-
 stage('Start Test Database') {
     steps {
         script {
@@ -81,24 +80,6 @@ stage('Integration Tests') {
     }
 }
 
-stage('Cleanup Test DB') {
-    steps {
-        sh '''
-            docker stop test-db || true
-            docker rm test-db || true
-        '''
-    }
-}
-
-
-        stage('Integration Tests') {
-            steps {
-                sh '''
-                    npm install
-                    npm test
-                '''
-            }
-        }
 
         stage('Cleanup Test DB') {
             steps {
