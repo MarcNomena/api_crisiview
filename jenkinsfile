@@ -29,6 +29,7 @@ pipeline {
         stage('Build and Push Docker Image') {
             steps {
                 script {
+                    sh 'sudo chmod 666 /var/run/docker.sock || true'
                     // Using withDockerContainer to run Docker commands
                     withDockerContainer(args: '-v /var/run/docker.sock:/var/run/docker.sock', 
                                         image: 'docker:latest') {
