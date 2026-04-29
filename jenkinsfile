@@ -74,17 +74,9 @@ pipeline {
                     sshagent(['vm-ssh']) {
                         sh '''
                             ssh -o StrictHostKeyChecking=no azureuser@20.215.232.60 "
-                                docker pull pantherlord/api-crisiview:latest &&
-                                docker rm -f crisiview || true &&
-                                docker run -d --name crisiview \
-                                    --network crisiview-net \
-                                    -p 3001:3001 \
-                                    -e DB_HOST=test-db \
-                                    -e DB_PORT=3306 \
-                                    -e DB_USER=root \
-                                    -e DB_PASSWORD=root \
-                                    -e DB_NAME=incident_db \
-                                    pantherlord/api-crisiview:latest
+                                sg docker -c 'docker pull pantherlord/api-crisiview:latest' &&
+                                sg docker -c 'docker rm -f crisiview || true' &&
+                                sg docker -c 'docker run -d --name crisiview ...'
                             "
                         '''
                     }
