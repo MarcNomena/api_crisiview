@@ -49,18 +49,47 @@ pipeline {
         }
 
 
-        stage('Start Test Database') {
-            steps {
-                sh '''
-                     docker run -d --name test-db \
+stage('Start Test Database') {
+    steps {
+        script {
+            sh '''
+                docker run -d --name test-db \
                     -e MYSQL_ROOT_PASSWORD=root \
                     -e MYSQL_DATABASE=incident_db \
                     mysql:8.0
-                '''
+            '''
 
             sleep 15
-            }
         }
+    }
+}
+
+stage('Integration Tests') {
+    steps {
+        script {
+            sh 'npm install'
+
+            sh '''
+                DB_HOST=test-db \
+                DB_PORT=3306 \
+                DB_USER=root \
+                DB_PASSWORD=root \
+                DB_NAME=incident_db \
+                npm test
+            '''
+        }
+    }
+}
+
+stage('Cleanup Test DB') {
+    steps {
+        sh '''
+            docker stop test-db || true
+            docker rm test-db || true
+        '''
+    }
+}
+
 
         stage('Integration Tests') {
             steps {
@@ -74,8 +103,8 @@ pipeline {
         stage('Cleanup Test DB') {
             steps {
                 sh '''
-                    docker stop mysql-crisiview || true
-                    docker rm mysql-crisiview || true
+                    docker stop test-db || true
+                    docker rm test-db || true
                 '''
             }
         }
