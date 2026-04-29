@@ -26,7 +26,7 @@ pipeline {
             }
         }
         
-/*         stage('SonarQube Analysis') {
+         stage('SonarQube Analysis') {
             steps {
                 script {
                     scannerHome = tool 'sonar-scanner'
@@ -37,93 +37,32 @@ pipeline {
                     """
                 }                 
             }
-        } */
-
-        stage('initialize cleanup Test DB') {
-            steps {
-                sh '''
-                    docker stop test-db || true
-                    docker rm test-db || true
-                '''
-            }
-        }
-
-        stage('Create Network') {
-            steps {
-                sh '''
-                    docker network create crisiview-net || true
-                '''
-            }
-}
+        } 
 
 
-stage('Start Test Database') {
+        stage('Install Dependencies') {
     steps {
-        script {
-            sh '''
-                docker run -d --name test-db \
-                    -e MYSQL_ROOT_PASSWORD=root \
-                    -e MYSQL_DATABASE=incident_db \
-                    --network crisiview-net \
-                    mysql:8.0
-
-                docker start test-db
-            '''
-
-            sleep 15
-        }
+        sh 'npm install'
     }
 }
 
-stage('Attach Jenkins to Network') {
+stage('Start Application') {
     steps {
-        script {
-           sh '''
-    docker network connect crisiview-net \$(hostname)
-'''
-        }
+        sh 'npm start &'
+        sleep 5   // laisse l'app démarrer
     }
 }
 
-
-stage('Integration Tests') {
+stage('Unit Tests') {
     steps {
-        script {
-sh '''
-docker run --rm \
-  --network crisiview-net \
-  -v $PWD:/app \
-  -w /app \
-  node:20 \
-  sh -c "
-    npm install &&
-    DB_HOST=test-db \
-    DB_PORT=3306 \
-    DB_USER=root \
-    DB_PASSWORD=root \
-    DB_NAME=incident_db \
-    npm test
-  "
-'''
-
-        }
+        sh 'npm test'
     }
 }
 
 
 
 
-        stage('Cleanup Test DB') {
-            steps {
-                sh '''
-                    docker stop test-db || true
-                    docker rm test-db || true
-                '''
-            }
-        }
-
-        
-/*         stage('Build and Push Docker Image') {
+         stage('Build and Push Docker Image') {
             steps {
                 script {
                     docker.withRegistry('', 'docker-credential') {
@@ -132,6 +71,6 @@ docker run --rm \
                     }
                 }
             }
-        } */
+        } 
     }
 }
