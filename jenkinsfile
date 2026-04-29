@@ -10,7 +10,13 @@ pipeline {
         nodejs 'Node25'
     }
 
-   stage('Test SSH to VM') {
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+      stage('Test SSH to VM') {
     steps {
         sshagent(['vm-ssh']) {
             sh '''
@@ -20,4 +26,5 @@ pipeline {
     }
 }
 
+    }
 }
