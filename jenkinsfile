@@ -20,7 +20,7 @@ pipeline {
     steps {
         sshagent(['vm-ssh']) {
             sh '''
-                ssh -o StrictHostKeyChecking=no azureuser@20.215.234.93 "echo SSH OK"
+                ssh -o StrictHostKeyChecking=no azureuser@20.215.232.60 "echo SSH OK"
             '''
         }
     }
