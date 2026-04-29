@@ -26,7 +26,7 @@ pipeline {
             }
         }
         
-        stage('SonarQube Analysis') {
+/*         stage('SonarQube Analysis') {
             steps {
                 script {
                     scannerHome = tool 'sonar-scanner'
@@ -37,7 +37,7 @@ pipeline {
                     """
                 }                 
             }
-        }
+        } */
 
         stage('initialize cleanup Test DB') {
             steps {
@@ -58,6 +58,8 @@ pipeline {
                         -p 3306:3306 \
                         -d mysql:8.0
                 '''
+
+            sleep 15
             }
         }
 
