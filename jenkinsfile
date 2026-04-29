@@ -9,6 +9,10 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 checkout scm
+                sh 'pwd'  // Verify we're in git repo
+                sh 'ls -la'  // See what files are there
+                sh 'git status'  // Confirm git is initialized
+
             }
         }
         
