@@ -56,6 +56,8 @@ stage('Start Test Database') {
                     -e MYSQL_ROOT_PASSWORD=root \
                     -e MYSQL_DATABASE=incident_db \
                     mysql:8.0
+
+                docker start test-db
             '''
 
             sleep 15
