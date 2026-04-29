@@ -1,6 +1,7 @@
-/* import request from 'supertest';
+import request from 'supertest';
 import { app } from '../server.js';
 import { sequelize } from '../db.js';
+
 
 describe('Technicien integration tests', () => {
     beforeAll(async () => {
@@ -68,4 +69,4 @@ describe('Technicien integration tests', () => {
 
         expect(getDeletedRes.body).toBeNull();
     });
-}); */
+});
