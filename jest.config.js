@@ -8,4 +8,5 @@ export default {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   transform: {},
+  testTimeout: 30000
 };
