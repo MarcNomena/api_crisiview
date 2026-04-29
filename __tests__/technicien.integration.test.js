@@ -2,6 +2,8 @@ import request from 'supertest';
 import { app } from '../server.js';
 import { sequelize } from '../db.js';
 
+jest.setTimeout(30000);
+
 describe('Technicien integration tests', () => {
     beforeAll(async () => {
         await sequelize.sync({ force: true });

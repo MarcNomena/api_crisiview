@@ -52,11 +52,10 @@ pipeline {
         stage('Start Test Database') {
             steps {
                 sh '''
-                    docker run --name mysql-crisiview \
-                        -e MYSQL_ROOT_PASSWORD=root \
-                        -e MYSQL_DATABASE=incident_db \
-                        -p 3306:3306 \
-                        -d mysql:8.0
+                     docker run -d --name test-db \
+                    -e MYSQL_ROOT_PASSWORD=root \
+                    -e MYSQL_DATABASE=incident_db \
+                    mysql:8.0
                 '''
 
             sleep 15
