@@ -11,31 +11,39 @@ pipeline {
                 checkout scm
             }
         }
+        
         stage('SonarQube Analysis') {
             steps {
-
-                    script {
-                        scannerHome = tool 'sonar-scanner'
-                    }
-                    withSonarQubeEnv('sq1') {
-                        sh """
-                            ${scannerHome}/bin/sonar-scanner
-                        """
-                    }                 
-                
+                script {
+                    scannerHome = tool 'sonar-scanner'
+                }
+                withSonarQubeEnv('sq1') {
+                    sh """
+                        ${scannerHome}/bin/sonar-scanner
+                    """
+                }                 
             }
         }
         
         stage('Build and Push Docker Image') {
             steps {
                 script {
-                    sh 'sudo chmod 666 /var/run/docker.sock || true'
-                    // Using withDockerContainer to run Docker commands
-                    withDockerContainer(args: '-v /var/run/docker.sock:/var/run/docker.sock', 
-                                        image: 'docker:latest') {
+                    // Fix docker socket permissions
+                    sh 'sudo chmod 666 /var/run/docker.sock || chmod 666 /var/run/docker.sock || true'
+                    
+                    // Build and push Docker image directly
+                    withCredentials([string(credentialsId: 'docker-credential', variable: 'DOCKER_PASSWORD')]) {
                         sh '''
                             docker build -t pantherlord/api-crisiview:latest .
+                            
+                            # Login to Docker Hub
+                            echo ${DOCKER_PASSWORD} | docker login -u pantherlord --password-stdin
+                            
+                            # Push the image
                             docker push pantherlord/api-crisiview:latest
+                            
+                            # Cleanup
+                            docker logout
                         '''
                     }
                 }
