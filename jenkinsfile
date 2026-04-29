@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HOST = "tcp://dind:2375"
+        DOCKER_HOST = "tcp://dind:2375" // docker inside docker car on utilise docker pour build l'image
+        // et ensuite en envoie du coup faut un autre instance de docker a part ce qui stocke jenkins lui meme
     }
 
     tools {
@@ -12,15 +13,15 @@ pipeline {
     stages {
         stage('Clean Workspace') {
             steps {
-                cleanWs()  // This clears old workspace files
+                cleanWs()
             }
         }
         stage('Checkout Code') {
             steps {
                 checkout scm
-                sh 'pwd'  // Verify we're in git repo
-                sh 'ls -la'  // See what files are there
-                sh 'git status'  // Confirm git is initialized
+                sh 'pwd'
+                sh 'ls -la'
+                sh 'git status'  
 
             }
         }
@@ -37,8 +38,29 @@ pipeline {
                 }                 
             }
         }
+
+        stage('Start Test Database') {
+            steps {
+                sh '''
+                    docker run --name mysql-crisiview \
+                        -e MYSQL_ROOT_PASSWORD=root \
+                        -e MYSQL_DATABASE=incident_db \
+                        -p 3306:3306 \
+                        -d mysql:8.0
+                '''
+            }
+        }
+
+        stage('Integration Tests') {
+            steps {
+                sh '''
+                    npm install
+                    npm test
+                '''
+            }
+        }
         
-        stage('Build and Push Docker Image') {
+/*         stage('Build and Push Docker Image') {
             steps {
                 script {
                     docker.withRegistry('', 'docker-credential') {
@@ -47,6 +69,6 @@ pipeline {
                     }
                 }
             }
-        }
+        } */
     }
 }
