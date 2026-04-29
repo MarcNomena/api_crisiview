@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+
+    tools {
+        nodejs 'Node25'
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+
+                    script {
+                        scannerHome = tool 'sonar-scanner'
+                    }
+                    withSonarQubeEnv('sq1') {
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                              -Dsonar.projectKey=api-crisiview \
+                              -Dsonar.sources=. \
+                              -Dsonar.exclusions=node_modules/**
+                        """
+                    }                 
+                
+            }
+        }
+        
+        stage('Build and Push Docker Image') {
+            steps {
+              
+                    script {
+                        docker.withRegistry('', 'docker-credential') {
+                            def customImage = docker.build("pantherlord/formify-backend:latest")
+                            customImage.push()
+                        }
+                    }
+                
+            }
+        }
+    }
+}
