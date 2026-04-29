@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HOST = "tcp://dind:2375"
+        DOCKER_HOST = "tcp://dind:2375" // docker inside docker car on utilise docker pour build l'image
+        // et ensuite en envoie du coup faut un autre instance de docker a part ce qui stocke jenkins lui meme
     }
 
     tools {
@@ -15,56 +16,92 @@ pipeline {
                 cleanWs()
             }
         }
-        
         stage('Checkout Code') {
             steps {
                 checkout scm
                 sh 'pwd'
                 sh 'ls -la'
-                sh 'git status'
+                sh 'git status'  
+
             }
         }
         
-        stage('Run Integration Tests with Docker Compose') {
+/*         stage('SonarQube Analysis') {
             steps {
                 script {
-                    sh '''
-                        # Clean up previous containers
-                        docker-compose -f docker-compose.test.yml down -v || true
-                        
-                        # Run tests with docker-compose
-                        docker-compose -f docker-compose.test.yml up --abort-on-container-exit
-                        
-                        # Capture exit code
-                        EXIT_CODE=$?
-                        
-                        # Clean up
-                        docker-compose -f docker-compose.test.yml down -v
-                        
-                        # Exit with the test exit code
-                        exit $EXIT_CODE
-                    '''
+                    scannerHome = tool 'sonar-scanner'
                 }
+                withSonarQubeEnv('sq1') {
+                    sh """
+                        ${scannerHome}/bin/sonar-scanner
+                    """
+                }                 
             }
-        }
-        
-        stage('Cleanup') {
+        } */
+
+        stage('initialize cleanup Test DB') {
             steps {
                 sh '''
-                    docker-compose -f docker-compose.test.yml down -v || true
                     docker stop test-db || true
                     docker rm test-db || true
                 '''
             }
         }
-    }
-    
-    post {
-        always {
-            // Always clean up regardless of test outcome
+
+stage('Start Test Database') {
+    steps {
+        script {
             sh '''
-                docker-compose -f docker-compose.test.yml down -v || true
+                docker run -d --name test-db \
+                    -e MYSQL_ROOT_PASSWORD=root \
+                    -e MYSQL_DATABASE=incident_db \
+                    mysql:8.0
+            '''
+
+            sleep 15
+        }
+    }
+}
+
+stage('Integration Tests') {
+    steps {
+        script {
+            sh 'npm install'
+
+            sh '''
+                DB_HOST=test-db \
+                DB_PORT=3306 \
+                DB_USER=root \
+                DB_PASSWORD=root \
+                DB_NAME=incident_db \
+                npm test
             '''
         }
+    }
+}
+
+
+
+
+        stage('Cleanup Test DB') {
+            steps {
+                sh '''
+                    docker stop test-db || true
+                    docker rm test-db || true
+                '''
+            }
+        }
+
+        
+/*         stage('Build and Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('', 'docker-credential') {
+                        def customImage = docker.build("pantherlord/api-crisiview:latest")
+                        customImage.push()
+                    }
+                }
+            }
+        } */
     }
 }
