@@ -39,7 +39,7 @@ pipeline {
             }
         }
 
-        stage('Cleanup Test DB') {
+        stage('initialize cleanup Test DB') {
             steps {
                 sh '''
                     docker stop mysql-crisiview || true
